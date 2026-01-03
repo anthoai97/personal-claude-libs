@@ -383,9 +383,9 @@ copy_framework_files() {
     if [ -d "$SCRIPT_DIR/hooks" ]; then
         # Copy notification hook and sounds if notifications are selected
         if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
-            if [ -f "$SCRIPT_DIR/hooks/notify.sh" ]; then
-                copy_with_check "$SCRIPT_DIR/hooks/notify.sh" \
-                              "$TARGET_DIR/.claude/hooks/notify.sh" \
+            if [ -f "$SCRIPT_DIR/hooks/notify.py" ]; then
+                copy_with_check "$SCRIPT_DIR/hooks/notify.py" \
+                              "$TARGET_DIR/.claude/hooks/notify.py" \
                               "Notification hook"
             fi
             
@@ -469,7 +469,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/notify.sh input"
+            "command": "bash $TARGET_DIR/.claude/hooks/notify.py input"
           }
         ]
       }
@@ -480,7 +480,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/notify.sh complete"
+            "command": "bash $TARGET_DIR/.claude/hooks/notify.py complete"
           }
         ]
       }

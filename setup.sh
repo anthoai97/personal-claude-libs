@@ -20,8 +20,6 @@ NC='\033[0m' # No Color
 
 # Configuration variables
 TARGET_DIR=""
-INSTALL_CONTEXT7="n"
-INSTALL_GEMINI="n"
 INSTALL_NOTIFICATIONS="n"
 OS=""
 AUDIO_PLAYER=""
@@ -82,10 +80,25 @@ safe_read_yn() {
     local user_input
     local sanitized_input
     local valid_input=false
+    local first_attempt=true
+
+    # Determine the input source
+    local input_source
+    if [ -t 0 ]; then
+        input_source="/dev/stdin"
+    else
+        input_source="/dev/tty"
+    fi
 
     while [ "$valid_input" = false ]; do
-        if ! safe_read user_input "$prompt"; then
-            return 1
+        if [ "$first_attempt" = true ]; then
+            if ! safe_read user_input "$prompt"; then
+                return 1
+            fi
+            first_attempt=false
+        else
+            # On retry, read directly (prompt already printed)
+            read -r user_input < "$input_source"
         fi
 
         # Sanitize input: remove carriage returns and whitespace
@@ -98,7 +111,7 @@ safe_read_yn() {
                 printf -v "$var_name" '%s' "$sanitized_input"
                 ;;
             *)
-                print_color "$YELLOW" "Please enter 'y' for yes or 'n' for no."
+                printf "${YELLOW}Please enter 'y' for yes or 'n' for no.${NC} (y/n): "
                 ;;
         esac
     done
@@ -111,10 +124,25 @@ safe_read_conflict() {
     local user_input
     local sanitized_input
     local valid_input=false
+    local first_attempt=true
+
+    # Determine the input source
+    local input_source
+    if [ -t 0 ]; then
+        input_source="/dev/stdin"
+    else
+        input_source="/dev/tty"
+    fi
 
     while [ "$valid_input" = false ]; do
-        if ! safe_read user_input "   Your choice: "; then
-            return 1
+        if [ "$first_attempt" = true ]; then
+            if ! safe_read user_input "   Your choice: "; then
+                return 1
+            fi
+            first_attempt=false
+        else
+            # On retry, read directly (prompt already printed)
+            read -r user_input < "$input_source"
         fi
 
         # Sanitize input: remove carriage returns and whitespace
@@ -127,7 +155,7 @@ safe_read_conflict() {
                 printf -v "$var_name" '%s' "$sanitized_input"
                 ;;
             *)
-                print_color "$YELLOW" "   Invalid choice. Please enter o, s, a, or n."
+                printf "${YELLOW}   Invalid choice. Please enter o, s, a, or n.${NC} Your choice: "
                 ;;
         esac
     done
@@ -246,23 +274,7 @@ prompt_optional_components() {
     echo
     print_color "$YELLOW" "Optional Components:"
     echo
-    
-    # Context7 MCP
-    print_color "$CYAN" "Context7 MCP Server (Highly Recommended)"
-    echo "  Provides up-to-date documentation for external libraries (React, FastAPI, etc.)"
-    if ! safe_read_yn INSTALL_CONTEXT7 "  Install Context7 integration? (y/n): "; then
-        exit 1
-    fi
-    echo
-    
-    # Gemini MCP
-    print_color "$CYAN" "Gemini Assistant MCP Server (Highly Recommended)"
-    echo "  Enables architectural consultation and advanced code review capabilities"
-    if ! safe_read_yn INSTALL_GEMINI "  Install Gemini integration? (y/n): "; then
-        exit 1
-    fi
-    echo
-    
+
     # Notifications
     print_color "$CYAN" "Notification System (Convenience Feature)"
     echo "  Plays audio alerts when tasks complete or input is needed"
@@ -379,8 +391,8 @@ copy_framework_files() {
         for cmd in "$SCRIPT_DIR/commands/"*.md; do
             if [ -f "$cmd" ]; then
                 basename_cmd="$(basename "$cmd")"
-                # Skip gemini-consult.md unless Gemini is selected
-                if [ "$basename_cmd" = "gemini-consult.md" ] && [ "$INSTALL_GEMINI" != "y" ]; then
+                # Skip gemini-consult.md (Gemini MCP not supported)
+                if [ "$basename_cmd" = "gemini-consult.md" ]; then
                     continue
                 fi
                 dest="$TARGET_DIR/.claude/commands/$basename_cmd"
@@ -388,34 +400,9 @@ copy_framework_files() {
             fi
         done
     fi
-    
+
     # Copy hooks based on user selections
     if [ -d "$SCRIPT_DIR/hooks" ]; then
-        # Always copy subagent context injector (core feature)
-        if [ -f "$SCRIPT_DIR/hooks/subagent-context-injector.sh" ]; then
-            copy_with_check "$SCRIPT_DIR/hooks/subagent-context-injector.sh" \
-                          "$TARGET_DIR/.claude/hooks/subagent-context-injector.sh" \
-                          "Hook script (core feature)"
-        fi
-        
-        # Copy MCP security scanner if any MCP server is selected
-        if [ "$INSTALL_CONTEXT7" = "y" ] || [ "$INSTALL_GEMINI" = "y" ]; then
-            if [ -f "$SCRIPT_DIR/hooks/mcp-security-scan.sh" ]; then
-                copy_with_check "$SCRIPT_DIR/hooks/mcp-security-scan.sh" \
-                              "$TARGET_DIR/.claude/hooks/mcp-security-scan.sh" \
-                              "MCP security scanner hook"
-            fi
-        fi
-        
-        # Copy Gemini context injector if Gemini is selected
-        if [ "$INSTALL_GEMINI" = "y" ]; then
-            if [ -f "$SCRIPT_DIR/hooks/gemini-context-injector.sh" ]; then
-                copy_with_check "$SCRIPT_DIR/hooks/gemini-context-injector.sh" \
-                              "$TARGET_DIR/.claude/hooks/gemini-context-injector.sh" \
-                              "Gemini context injector hook"
-            fi
-        fi
-        
         # Copy notification hook and sounds if notifications are selected
         if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
             if [ -f "$SCRIPT_DIR/hooks/notify.sh" ]; then
@@ -526,21 +513,7 @@ copy_framework_files() {
             print_color "$YELLOW" "→ Preserved existing CLAUDE.md"
         fi
     fi
-    
-    # Create MCP-ASSISTANT-RULES.md from template if Gemini is selected
-    if [ "$INSTALL_GEMINI" = "y" ]; then
-        if [ ! -f "$TARGET_DIR/MCP-ASSISTANT-RULES.md" ] && [ -f "$SCRIPT_DIR/docs/MCP-ASSISTANT-RULES.md" ]; then
-            cp "$SCRIPT_DIR/docs/MCP-ASSISTANT-RULES.md" "$TARGET_DIR/MCP-ASSISTANT-RULES.md"
-            print_color "$GREEN" "✓ Created MCP-ASSISTANT-RULES.md from template"
-        else
-            if [ -f "$TARGET_DIR/MCP-ASSISTANT-RULES.md" ]; then
-                print_color "$YELLOW" "→ Preserved existing MCP-ASSISTANT-RULES.md"
-            fi
-        fi
-    else
-        print_color "$YELLOW" "→ Skipped MCP-ASSISTANT-RULES.md (Gemini not selected)"
-    fi
-    
+
     print_color "$GREEN" "✓ Framework files copied"
 }
 
@@ -563,95 +536,17 @@ set_permissions() {
 # Generate configuration file
 generate_config() {
     print_color "$YELLOW" "Generating configuration..."
-    
+
     local config_file="$TARGET_DIR/.claude/settings.local.json"
-    
+
     # Start building the configuration with new hooks format
     cat > "$config_file" << EOF
 {
   "hooks": {
 EOF
 
-    # PreToolUse hooks
-    local pretooluse_hooks=()
-    
-    # Security scan hook for MCP tools
-    if [ "$INSTALL_CONTEXT7" = "y" ] || [ "$INSTALL_GEMINI" = "y" ]; then
-        pretooluse_hooks+=("mcp-security")
-    fi
-    
-    # Gemini context injector
-    if [ "$INSTALL_GEMINI" = "y" ]; then
-        pretooluse_hooks+=("gemini-context")
-    fi
-    
-    # Always add sub-agent context injector
-    pretooluse_hooks+=("subagent-context")
-    
-    # Write PreToolUse hooks
-    if [ ${#pretooluse_hooks[@]} -gt 0 ]; then
-        cat >> "$config_file" << EOF
-    "PreToolUse": [
-EOF
-        
-        local first_hook=true
-        
-        # MCP security scanner
-        if [[ " ${pretooluse_hooks[@]} " =~ " mcp-security " ]]; then
-            [ "$first_hook" = false ] && echo "," >> "$config_file"
-            cat >> "$config_file" << EOF
-      {
-        "matcher": "mcp__",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/mcp-security-scan.sh"
-          }
-        ]
-      }
-EOF
-            first_hook=false
-        fi
-        
-        # Gemini context injector
-        if [[ " ${pretooluse_hooks[@]} " =~ " gemini-context " ]]; then
-            [ "$first_hook" = false ] && echo "," >> "$config_file"
-            cat >> "$config_file" << EOF
-      {
-        "matcher": "mcp__gemini",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/gemini-context-injector.sh"
-          }
-        ]
-      }
-EOF
-            first_hook=false
-        fi
-        
-        # Sub-agent context injector
-        [ "$first_hook" = false ] && echo "," >> "$config_file"
-        cat >> "$config_file" << EOF
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/subagent-context-injector.sh"
-          }
-        ]
-      }
-EOF
-        
-        cat >> "$config_file" << EOF
-    ]
-EOF
-    fi
-    
     # Add notification hooks if enabled
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
-        [ ${#pretooluse_hooks[@]} -gt 0 ] && echo "," >> "$config_file"
         cat >> "$config_file" << EOF
     "Notification": [
       {
@@ -687,36 +582,6 @@ EOF
     print_color "$GREEN" "✓ Configuration generated: $config_file"
 }
 
-# Display MCP server information
-display_mcp_info() {
-    if [ "$INSTALL_CONTEXT7" = "y" ] || [ "$INSTALL_GEMINI" = "y" ]; then
-        echo
-        print_color "$BLUE" "=== MCP Server Setup (Required) ==="
-        echo
-        echo "To complete the setup, you need to install the MCP servers you selected:"
-        echo
-        
-        if [ "$INSTALL_CONTEXT7" = "y" ]; then
-            print_color "$YELLOW" "Context7 MCP Server:"
-            echo "  Repository: https://github.com/upstash/context7"
-            echo "  Documentation: See the Context7 README for setup instructions"
-            echo
-        fi
-        
-        if [ "$INSTALL_GEMINI" = "y" ]; then
-            print_color "$YELLOW" "Gemini MCP Server:"
-            echo "  Repository: https://github.com/peterkrueck/mcp-gemini-assistant"
-            echo "  Documentation: See the MCP Gemini Assistant README for setup instructions"
-            echo
-        fi
-        
-        echo "After installing the MCP servers, add their configuration to:"
-        print_color "$BLUE" "  $TARGET_DIR/.claude/settings.local.json"
-        echo
-        echo "Add a 'mcpServers' section with the appropriate server configurations."
-    fi
-}
-
 # Show next steps
 show_next_steps() {
     echo
@@ -731,21 +596,7 @@ show_next_steps() {
     echo "   - Update project structure in: $TARGET_DIR/docs/ai-context/project-structure.md"
     echo
     ((step_num++))
-    
-    if [ "$INSTALL_GEMINI" = "y" ]; then
-        echo "${step_num}. Set your coding standards for Gemini:"
-        echo "   - Edit: $TARGET_DIR/MCP-ASSISTANT-RULES.md"
-        echo
-        ((step_num++))
-    fi
-    
-    if [ "$INSTALL_CONTEXT7" = "y" ] || [ "$INSTALL_GEMINI" = "y" ]; then
-        echo "${step_num}. Configure security patterns:"
-        echo "   - Edit: $TARGET_DIR/.claude/hooks/config/sensitive-patterns.json"
-        echo
-        ((step_num++))
-    fi
-    
+
     echo "${step_num}. Test your installation:"
     echo "   - Run: claude"
     echo "   - Then: /full-context \"analyze my project structure\""
@@ -806,9 +657,8 @@ main() {
     copy_framework_files
     set_permissions
     generate_config
-    
+
     # Show completion information
-    display_mcp_info
     show_next_steps
 }
 

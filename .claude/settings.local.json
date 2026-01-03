@@ -1,11 +1,37 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(uv run:*)",
-      "Bash(chmod:*)",
-      "Bash(ls:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)"
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/anquach/Code/personal-claude-libs/.claude/hooks/subagent-context-injector.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.sh input"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.sh complete"
+          }
+        ]
+      }
     ]
   }
 }

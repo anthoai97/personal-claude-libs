@@ -297,11 +297,6 @@ create_directories() {
     
     # Main directories
     mkdir -p "$TARGET_DIR/.claude/commands"
-    mkdir -p "$TARGET_DIR/.claude/hooks/config"
-    mkdir -p "$TARGET_DIR/docs/ai-context"
-    mkdir -p "$TARGET_DIR/docs/open-issues"
-    mkdir -p "$TARGET_DIR/docs/specs"
-    mkdir -p "$TARGET_DIR/logs"
     
     # Only create sounds directory if notifications are enabled
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
@@ -451,59 +446,6 @@ copy_framework_files() {
         fi
     fi
     
-    # Copy documentation structure
-    if [ -d "$SCRIPT_DIR/docs" ]; then
-        # Copy ai-context files
-        if [ -d "$SCRIPT_DIR/docs/ai-context" ]; then
-            for doc in "$SCRIPT_DIR/docs/ai-context/"*.md; do
-                if [ -f "$doc" ]; then
-                    dest="$TARGET_DIR/docs/ai-context/$(basename "$doc")"
-                    copy_with_check "$doc" "$dest" "AI context documentation"
-                fi
-            done
-        fi
-        
-        # Copy example issues
-        if [ -d "$SCRIPT_DIR/docs/open-issues" ]; then
-            for issue in "$SCRIPT_DIR/docs/open-issues/"*.md; do
-                if [ -f "$issue" ]; then
-                    dest="$TARGET_DIR/docs/open-issues/$(basename "$issue")"
-                    copy_with_check "$issue" "$dest" "Issue template"
-                fi
-            done
-        fi
-        
-        # Copy spec templates
-        if [ -d "$SCRIPT_DIR/docs/specs" ]; then
-            for spec in "$SCRIPT_DIR/docs/specs/"*.md; do
-                if [ -f "$spec" ]; then
-                    dest="$TARGET_DIR/docs/specs/$(basename "$spec")"
-                    copy_with_check "$spec" "$dest" "Specification template"
-                fi
-            done
-        fi
-        
-        # Copy docs README
-        if [ -f "$SCRIPT_DIR/docs/README.md" ]; then
-            copy_with_check "$SCRIPT_DIR/docs/README.md" \
-                          "$TARGET_DIR/docs/README.md" \
-                          "Documentation guide"
-        fi
-        
-        # Copy CONTEXT template files
-        if [ -f "$SCRIPT_DIR/docs/CONTEXT-tier2-component.md" ]; then
-            copy_with_check "$SCRIPT_DIR/docs/CONTEXT-tier2-component.md" \
-                          "$TARGET_DIR/docs/CONTEXT-tier2-component.md" \
-                          "Tier 2 documentation template"
-        fi
-        
-        if [ -f "$SCRIPT_DIR/docs/CONTEXT-tier3-feature.md" ]; then
-            copy_with_check "$SCRIPT_DIR/docs/CONTEXT-tier3-feature.md" \
-                          "$TARGET_DIR/docs/CONTEXT-tier3-feature.md" \
-                          "Tier 3 documentation template"
-        fi
-    fi
-    
     # Create CLAUDE.md from template if it doesn't exist
     if [ ! -f "$TARGET_DIR/CLAUDE.md" ] && [ -f "$SCRIPT_DIR/docs/CLAUDE.md" ]; then
         cp "$SCRIPT_DIR/docs/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
@@ -605,7 +547,7 @@ show_next_steps() {
     
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
         echo "${step_num}. Test notifications:"
-        echo "   - Run: bash $TARGET_DIR/.claude/hooks/notify.sh"
+        echo "   - Run: bash $TARGET_DIR/.claude/hooks/notify.py"
         echo
         ((step_num++))
     fi

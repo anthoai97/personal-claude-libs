@@ -1,16 +1,5 @@
 {
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/anquach/Code/personal-claude-libs/.claude/hooks/subagent-context-injector.sh"
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "matcher": "",
@@ -33,5 +22,6 @@
         ]
       }
     ]
+
   }
 }

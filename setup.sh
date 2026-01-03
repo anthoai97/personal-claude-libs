@@ -295,8 +295,6 @@ prompt_optional_components() {
 create_directories() {
     print_color "$YELLOW" "Creating directory structure..."
     
-    # Main directories
-    mkdir -p "$TARGET_DIR/.claude/commands"
     
     # Only create sounds directory if notifications are enabled
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
@@ -381,21 +379,6 @@ copy_framework_files() {
     print_color "$YELLOW" "Copying framework files..."
     echo
     
-    # Copy commands
-    if [ -d "$SCRIPT_DIR/commands" ]; then
-        for cmd in "$SCRIPT_DIR/commands/"*.md; do
-            if [ -f "$cmd" ]; then
-                basename_cmd="$(basename "$cmd")"
-                # Skip gemini-consult.md (Gemini MCP not supported)
-                if [ "$basename_cmd" = "gemini-consult.md" ]; then
-                    continue
-                fi
-                dest="$TARGET_DIR/.claude/commands/$basename_cmd"
-                copy_with_check "$cmd" "$dest" "Command template"
-            fi
-        done
-    fi
-
     # Copy hooks based on user selections
     if [ -d "$SCRIPT_DIR/hooks" ]; then
         # Copy notification hook and sounds if notifications are selected
@@ -415,16 +398,6 @@ copy_framework_files() {
                     fi
                 done
             fi
-        fi
-        
-        # Copy config files with conflict handling
-        if [ -d "$SCRIPT_DIR/hooks/config" ]; then
-            for config in "$SCRIPT_DIR/hooks/config/"*; do
-                if [ -f "$config" ]; then
-                    dest="$TARGET_DIR/.claude/hooks/config/$(basename "$config")"
-                    copy_with_check "$config" "$dest" "Configuration file"
-                fi
-            done
         fi
         
         # Copy README for reference
@@ -563,7 +536,6 @@ show_next_steps() {
     echo
     
     print_color "$BLUE" "For documentation and examples, see:"
-    echo "  - Commands: $TARGET_DIR/.claude/commands/README.md"
     echo "  - Hooks: $TARGET_DIR/.claude/hooks/README.md"
     echo "  - Docs: $TARGET_DIR/docs/README.md"
 }

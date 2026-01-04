@@ -48,8 +48,58 @@ Claude Code Lifecycle
 # dependencies = [
 #   "sounddevice",
 #   "soundfile",
+#   "requests",  # For Telegram notifications
 # ]
 # ///
+```
+
+## Telegram Notifications (Optional)
+
+Get Telegram notifications when Claude Code completes tasks.
+
+### Setup (2 minutes)
+
+1. **Create a Telegram bot:**
+   - Open Telegram and search for `@BotFather`
+   - Send `/newbot` and follow the prompts
+   - Copy the bot token (looks like `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
+
+2. **Get your Chat ID:**
+   - Send a message to your bot (any message)
+   - Visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - Find `"chat":{"id":123456789}` in the response
+   - Copy that number
+
+3. **Add to your shell profile** (`~/.zshrc` or `~/.bashrc`):
+
+```bash
+export TELEGRAM_BOT_TOKEN="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+export TELEGRAM_CHAT_ID="123456789"
+```
+
+4. Restart your terminal or run `source ~/.zshrc`
+
+That's it. Next time Claude Code completes a task, you'll get a Telegram message.
+
+### Message Format
+
+Messages look like: `✓ Claude Code done in 'project-name' at 14:35:22`
+
+### Troubleshooting
+
+**No messages being sent?**
+- Check env vars are set: `echo $TELEGRAM_BOT_TOKEN`
+- Make sure you sent at least one message to your bot first
+- Verify chat ID is correct (visit the getUpdates URL)
+
+**Want to disable?**
+- Unset the env vars or comment them out in your shell profile
+
+**Test manually:**
+```bash
+curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+  -H "Content-Type: application/json" \
+  -d "{\"chat_id\": \"$TELEGRAM_CHAT_ID\", \"text\": \"Test message\"}"
 ```
 
 ## Installation

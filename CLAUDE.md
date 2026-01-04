@@ -84,6 +84,19 @@ Configuration is stored in `.claude/settings.local.json`.
 
 Audio playback uses `sounddevice` and `soundfile` libraries for cross-platform support (macOS, Linux, Windows).
 
+### Telegram Notifications (Optional)
+
+The notification hook supports optional Telegram messages via environment variables:
+
+- `TELEGRAM_BOT_TOKEN` - Bot token from @BotFather
+- `TELEGRAM_CHAT_ID` - Your Telegram chat ID
+
+If both are set, completion notifications send to Telegram. If not set, only audio plays.
+
+**Dependencies:** `requests` library for HTTP calls to Telegram Bot API.
+
+**Setup:** Chat with @BotFather to create a bot (takes ~2 minutes). See `hooks/Readme.md` for detailed setup instructions.
+
 ## Development Hook Flow
 
 ### Creating a New Hook

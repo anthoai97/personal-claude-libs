@@ -4,18 +4,23 @@
 # dependencies = [
 #   "sounddevice",
 #   "soundfile",
+#   "requests",
 # ]
 # ///
 """
 Claude Code notification hook script.
 Plays pleasant sounds when Claude needs input or completes tasks.
+Optionally sends Telegram messages on completion.
 """
 
+import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import sounddevice as sd
 import soundfile as sf
+import requests
 
 
 def play_sound_file(sound_file: Path) -> bool:
@@ -34,6 +39,29 @@ def play_sound_file(sound_file: Path) -> bool:
         return False
 
 
+def send_telegram(event: str) -> None:
+    """Send Telegram message if configured (complete event only)."""
+    if event != "complete":
+        return
+
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    if not (bot_token and chat_id):
+        return  # Not configured, skip silently
+
+    message = f"✓ Claude Code done in '{Path.cwd().name}' at {datetime.now():%H:%M:%S}"
+
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            json={"chat_id": chat_id, "text": message},
+            timeout=5
+        )
+    except Exception:
+        pass  # Fail silently - audio still plays
+
+
 def main() -> int:
     """Main entry point."""
     if len(sys.argv) != 2 or sys.argv[1] not in ("input", "complete"):
@@ -42,6 +70,7 @@ def main() -> int:
         print("  complete - Play sound when Claude completes tasks", file=sys.stderr)
         return 1
 
+    event = sys.argv[1]
     script_dir = Path(__file__).resolve().parent
     sounds_dir = script_dir / "sounds"
 
@@ -50,7 +79,8 @@ def main() -> int:
         "complete": sounds_dir / "complete.ogg",
     }
 
-    play_sound_file(sound_files[sys.argv[1]])
+    play_sound_file(sound_files[event])
+    send_telegram(event)
     return 0
 
 

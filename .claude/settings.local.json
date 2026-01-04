@@ -1,4 +1,23 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "WebSearch",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(gh --version:*)",
+      "Bash(gh issue create:*)",
+      "Skill(compound-engineering:plan_review)",
+      "Bash(gh issue edit:*)",
+      "Skill(compound-engineering:workflows:work)",
+      "Skill(compound-engineering:git-worktree)",
+      "Bash(bash:*)",
+      "Bash(git checkout:*)",
+      "Bash(unset:*)",
+      "Bash(uv run:*)",
+      "Bash(git add:*)"
+    ]
+  },
   "hooks": {
     "Notification": [
       {
@@ -22,6 +41,5 @@
         ]
       }
     ]
-
   }
 }

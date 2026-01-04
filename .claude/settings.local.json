@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run D:/Code/personal-claude-libs/.claude/hooks/notify.py input"
+            "command": "uv run /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.py input"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run D:/Code/personal-claude-libs/.claude/hooks/notify.py complete"
+            "command": "uv run /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.py complete"
           }
         ]
       }

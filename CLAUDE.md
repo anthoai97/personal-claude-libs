@@ -49,7 +49,7 @@ Custom Claude Code commands available in this repository:
 
 | Command | Description |
 |---------|-------------|
-| `/update-doc` | Scan codebase and update README.md and CLAUDE.md to reflect current state |
+| `/update-doc` | Automatically analyze changes and update project documentation using AI-optimized workflow |
 
 Slash commands are defined in `.claude/commands/` as markdown files.
 

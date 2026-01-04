@@ -21,8 +21,6 @@ NC='\033[0m' # No Color
 # Configuration variables
 TARGET_DIR=""
 INSTALL_NOTIFICATIONS="n"
-OS=""
-AUDIO_PLAYER=""
 OVERWRITE_ALL="n"
 SKIP_ALL="n"
 
@@ -205,34 +203,31 @@ check_required_tools() {
     print_color "$GREEN" "✓ All required tools are available"
 }
 
-# Detect operating system
-detect_os() {
+# Install uv package manager
+install_uv_package() {
+    print_color "$YELLOW" "Installing uv..."
+
     case "$(uname -s)" in
-        Darwin*)
-            OS="macOS"
-            AUDIO_PLAYER="afplay"
-            ;;
-        Linux*)
-            OS="Linux"
-            # Check for available audio players
-            for player in paplay aplay pw-play play ffplay; do
-                if command -v "$player" &> /dev/null; then
-                    AUDIO_PLAYER="$player"
-                    break
-                fi
-            done
+        Darwin*|Linux*)
+            # macOS and Linux use the shell installer
+            if command -v curl &> /dev/null; then
+                curl -LsSf https://astral.sh/uv/install.sh | sh
+            elif command -v wget &> /dev/null; then
+                wget -qO- https://astral.sh/uv/install.sh | sh
+            else
+                print_color "$RED" "❌ Neither curl nor wget found. Cannot install uv."
+                return 1
+            fi
             ;;
         MINGW*|MSYS*|CYGWIN*)
-            OS="Windows"
-            AUDIO_PLAYER="powershell"
+            # Windows uses PowerShell installer
+            powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
             ;;
         *)
-            OS="Unknown"
-            AUDIO_PLAYER=""
+            print_color "$RED" "❌ Unsupported OS for automatic uv installation"
+            return 1
             ;;
     esac
-    
-    print_color "$GREEN" "✓ Detected OS: $OS"
 }
 
 # Get target directory
@@ -281,12 +276,41 @@ prompt_optional_components() {
     if ! safe_read_yn INSTALL_NOTIFICATIONS "  Set up notification hooks? (y/n): "; then
         exit 1
     fi
-    
-    # Only detect OS if notifications are enabled
+
+    # Check for uv if notifications are enabled (required for running Python scripts with dependencies)
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
-        detect_os
-        if [ -z "$AUDIO_PLAYER" ] && [ "$OS" = "Linux" ]; then
-            print_color "$YELLOW" "⚠️  No audio player found. Install one of: paplay, aplay, pw-play, play, ffplay"
+        if ! command -v uv &> /dev/null; then
+            print_color "$YELLOW" "⚠️  uv is required for notification hooks but not found"
+            echo "  The notification script uses uv for automatic dependency management."
+            echo
+            if ! safe_read_yn install_uv "  Would you like to install uv now? (y/n): "; then
+                exit 1
+            fi
+
+            if [ "$install_uv" = "y" ]; then
+                install_uv_package
+                # Verify installation
+                if command -v uv &> /dev/null; then
+                    print_color "$GREEN" "✓ uv installed successfully"
+                else
+                    # Try to source shell profile to get uv in PATH
+                    export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+                    if command -v uv &> /dev/null; then
+                        print_color "$GREEN" "✓ uv installed successfully"
+                    else
+                        print_color "$RED" "❌ uv installation failed or not in PATH"
+                        print_color "$YELLOW" "  Please restart your terminal and run setup again."
+                        print_color "$YELLOW" "Disabling notification hooks..."
+                        INSTALL_NOTIFICATIONS="n"
+                    fi
+                fi
+            else
+                echo "  Install manually from: https://docs.astral.sh/uv/getting-started/installation/"
+                print_color "$YELLOW" "Disabling notification hooks..."
+                INSTALL_NOTIFICATIONS="n"
+            fi
+        else
+            print_color "$GREEN" "✓ uv is available for running notification hooks"
         fi
     fi
 }
@@ -387,6 +411,8 @@ copy_framework_files() {
                 copy_with_check "$SCRIPT_DIR/hooks/notify.py" \
                               "$TARGET_DIR/.claude/hooks/notify.py" \
                               "Notification hook"
+                # Make the script executable (uses uv shebang for dependency management)
+                chmod +x "$TARGET_DIR/.claude/hooks/notify.py"
             fi
             
             # Copy sounds with conflict handling
@@ -418,34 +444,8 @@ copy_framework_files() {
             done
         fi
     fi
-    
-    # Create CLAUDE.md from template if it doesn't exist
-    if [ ! -f "$TARGET_DIR/CLAUDE.md" ] && [ -f "$SCRIPT_DIR/docs/CLAUDE.md" ]; then
-        cp "$SCRIPT_DIR/docs/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-        print_color "$GREEN" "✓ Created CLAUDE.md from template"
-    else
-        if [ -f "$TARGET_DIR/CLAUDE.md" ]; then
-            print_color "$YELLOW" "→ Preserved existing CLAUDE.md"
-        fi
-    fi
-
+		
     print_color "$GREEN" "✓ Framework files copied"
-}
-
-# Set executable permissions
-set_permissions() {
-    print_color "$YELLOW" "Setting file permissions..."
-    
-    # Make only copied shell scripts executable
-    if [ -d "$TARGET_DIR/.claude/hooks" ]; then
-        for script in "$TARGET_DIR/.claude/hooks/"*.sh; do
-            if [ -f "$script" ]; then
-                chmod +x "$script"
-            fi
-        done
-    fi
-    
-    print_color "$GREEN" "✓ Permissions set"
 }
 
 # Generate configuration file
@@ -459,7 +459,6 @@ generate_config() {
 {
   "hooks": {
 EOF
-
     # Add notification hooks if enabled
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
         cat >> "$config_file" << EOF
@@ -469,7 +468,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/notify.py input"
+            "command": "$TARGET_DIR/.claude/hooks/notify.py input"
           }
         ]
       }
@@ -480,7 +479,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "bash $TARGET_DIR/.claude/hooks/notify.py complete"
+            "command": "$TARGET_DIR/.claude/hooks/notify.py complete"
           }
         ]
       }
@@ -493,7 +492,6 @@ EOF
   }
 }
 EOF
-    
     print_color "$GREEN" "✓ Configuration generated: $config_file"
 }
 
@@ -512,32 +510,12 @@ show_next_steps() {
     echo
     ((step_num++))
 
-    echo "${step_num}. Test your installation:"
-    echo "   - Run: claude"
-    echo "   - Then: /full-context \"analyze my project structure\""
-    echo
-    ((step_num++))
-    
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
         echo "${step_num}. Test notifications:"
-        echo "   - Run: bash $TARGET_DIR/.claude/hooks/notify.py"
+        echo "   - Run: $TARGET_DIR/.claude/hooks/notify.py input"
         echo
         ((step_num++))
     fi
-    
-    echo "${step_num}. Documentation Templates:"
-    print_color "$CYAN" "   The framework includes documentation templates:"
-    echo "   - $TARGET_DIR/docs/CONTEXT-tier2-component.md"
-    echo "   - $TARGET_DIR/docs/CONTEXT-tier3-feature.md"
-    echo
-    echo "   These are TEMPLATES. To use them:"
-    echo "   • Copy to your component/feature directories and rename to CONTEXT.md"
-    echo "   • OR use the /create-docs command to generate documentation automatically"
-    echo
-    
-    print_color "$BLUE" "For documentation and examples, see:"
-    echo "  - Hooks: $TARGET_DIR/.claude/hooks/README.md"
-    echo "  - Docs: $TARGET_DIR/docs/README.md"
 }
 
 # Main execution
@@ -569,7 +547,6 @@ main() {
     # Perform installation
     create_directories
     copy_framework_files
-    set_permissions
     generate_config
 
     # Show completion information

@@ -87,7 +87,6 @@ Add to your Claude Code `settings.json`:
 ## Troubleshooting
 
 ### Hook not executing
-- Check file permissions: `chmod +x notify.py`
 - Verify paths in settings.json
 - Check Claude Code logs for errors
 

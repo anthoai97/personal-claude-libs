@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/d/Code/personal-claude-libs/.claude/.claude/hooks/notify.py input"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/d/Code/personal-claude-libs/.claude/.claude/hooks/notify.py complete"
+          }
+        ]
+      }
+    ]
+
+  }
+}

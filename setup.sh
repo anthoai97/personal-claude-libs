@@ -473,15 +473,18 @@ generate_config() {
     local config_file="$TARGET_DIR/.claude/settings.local.json"
     local native_target_dir
     native_target_dir="$(to_native_path "$TARGET_DIR")"
+    local temp_hooks_file
+    temp_hooks_file="$(mktemp)"
 
-    # Start building the configuration with new hooks format
-    cat > "$config_file" << EOF
+    # Build the hooks configuration in a temporary file
+    cat > "$temp_hooks_file" << EOF
 {
   "hooks": {
 EOF
+
     # Add notification hooks if enabled
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
-        cat >> "$config_file" << EOF
+        cat >> "$temp_hooks_file" << EOF
     "Notification": [
       {
         "matcher": "",
@@ -506,13 +509,32 @@ EOF
     ]
 EOF
     fi
-    
-    cat >> "$config_file" << EOF
+
+    cat >> "$temp_hooks_file" << EOF
 
   }
 }
 EOF
-    print_color "$GREEN" "✓ Configuration generated: $config_file"
+
+    # Merge with existing config or create new one
+    if [ -f "$config_file" ]; then
+        # Config file exists - merge only the hooks section
+        local temp_merged
+        temp_merged="$(mktemp)"
+
+        # Use jq to merge: keep all existing config, but override hooks section
+        jq -s '.[0] * .[1]' "$config_file" "$temp_hooks_file" > "$temp_merged"
+        mv "$temp_merged" "$config_file"
+
+        print_color "$GREEN" "✓ Configuration updated (hooks section): $config_file"
+    else
+        # No existing config - create new file with hooks
+        mv "$temp_hooks_file" "$config_file"
+        print_color "$GREEN" "✓ Configuration created: $config_file"
+    fi
+
+    # Clean up temp file if it still exists
+    [ -f "$temp_hooks_file" ] && rm -f "$temp_hooks_file"
 }
 
 # Show next steps

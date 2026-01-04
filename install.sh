@@ -12,19 +12,19 @@ REPO_OWNER="anthoai97"
 REPO_NAME="personal-claude-libs"
 BRANCH="master"
 
-# Colors for output
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Colors for output (using $'...' ANSI-C quoting for proper escape handling)
+BLUE=$'\033[0;34m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+RED=$'\033[0;31m'
+CYAN=$'\033[0;36m'
+NC=$'\033[0m' # No Color
 
 # Print colored output
 print_color() {
     local color=$1
     shift
-    echo -e "${color}$@${NC}"
+    printf '%s%s%s\n' "$color" "$*" "$NC"
 }
 
 # Spinner function for progress indication

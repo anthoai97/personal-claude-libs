@@ -448,11 +448,31 @@ copy_framework_files() {
     print_color "$GREEN" "✓ Framework files copied"
 }
 
+# Convert path to Windows format if on Windows (Git Bash uses /c/ style paths)
+to_native_path() {
+    local path="$1"
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*)
+            # Convert /d/path to D:/path for Windows
+            if [[ "$path" =~ ^/([a-zA-Z])/ ]]; then
+                echo "${BASH_REMATCH[1]^}:${path:2}"
+            else
+                echo "$path"
+            fi
+            ;;
+        *)
+            echo "$path"
+            ;;
+    esac
+}
+
 # Generate configuration file
 generate_config() {
     print_color "$YELLOW" "Generating configuration..."
 
     local config_file="$TARGET_DIR/.claude/settings.local.json"
+    local native_target_dir
+    native_target_dir="$(to_native_path "$TARGET_DIR")"
 
     # Start building the configuration with new hooks format
     cat > "$config_file" << EOF
@@ -468,7 +488,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "uv run $TARGET_DIR/.claude/hooks/notify.py input"
+            "command": "uv run $native_target_dir/.claude/hooks/notify.py input"
           }
         ]
       }
@@ -479,7 +499,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "uv run $TARGET_DIR/.claude/hooks/notify.py complete"
+            "command": "uv run $native_target_dir/.claude/hooks/notify.py complete"
           }
         ]
       }

@@ -73,8 +73,7 @@ Get Telegram notifications when Claude Code completes tasks.
 3. **Add to your shell profile** (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-export TELEGRAM_BOT_TOKEN="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-export TELEGRAM_CHAT_ID="123456789"
+CONFIG_FILE=$([ -f ~/.zshrc ] && echo ~/.zshrc || echo ~/.bashrc); echo -e 'export TELEGRAM_BOT_TOKEN="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"\nexport TELEGRAM_CHAT_ID="123456789"' >> $CONFIG_FILE
 ```
 
 4. Restart your terminal or run `source ~/.zshrc`

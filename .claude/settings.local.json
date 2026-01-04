@@ -15,7 +15,12 @@
       "Bash(git checkout:*)",
       "Bash(unset:*)",
       "Bash(uv run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Skill(compound-engineering:compound-docs)",
+      "Bash(find:*)"
     ]
   },
   "hooks": {

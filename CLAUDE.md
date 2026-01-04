@@ -72,3 +72,75 @@ Configuration is stored in `.claude/settings.local.json`.
 ### Cross-Platform Audio
 
 Audio playback uses `sounddevice` and `soundfile` libraries for cross-platform support (macOS, Linux, Windows).
+
+## Development Hook Flow
+
+### Creating a New Hook
+
+1. **Create hook script** in `hooks/` directory using PEP 723 format:
+   ```python
+   #!/usr/bin/env -S uv run --script
+   # /// script
+   # requires-python = ">=3.10"
+   # dependencies = ["your-deps"]
+   # ///
+   ```
+
+2. **Make executable**: `chmod +x hooks/your_hook.py`
+
+3. **Write unit tests** in `test/` directory using the same PEP 723 pattern with pytest
+
+4. **Test manually** across platforms before distribution
+
+### Testing Workflow
+
+```bash
+# Run all tests with verbose output
+uv run test/test_notify.py -v
+
+# Run specific test class
+uv run test/test_notify.py -v -k "TestPlaySoundFile"
+
+# Run single test
+uv run test/test_notify.py -v -k "test_missing_file_returns_false"
+```
+
+### Multi-OS Compatibility Guidelines
+
+When developing hooks, ensure compatibility across macOS, Linux, and Windows:
+
+| Concern | Solution |
+|---------|----------|
+| Shebang | Use `#!/usr/bin/env -S uv run --script` (works on all platforms) |
+| Paths | Use `pathlib.Path` for cross-platform path handling |
+| Audio | Use `sounddevice`/`soundfile` (not OS-specific commands) |
+| File permissions | `setup.sh` handles `chmod +x`; Windows ignores it |
+| Path separators | `Path` handles `/` vs `\` automatically |
+| Config paths | Use forward slashes in JSON; Windows Git Bash converts them |
+
+### Hook Lifecycle Integration
+
+```
+Claude Code Session
+       │
+       ├─► SessionStart ────► (session initialization hooks)
+       │
+       ├─► UserPromptSubmit ─► (validate/transform user input)
+       │
+       ├─► PreToolUse ──────► (block or allow tool execution)
+       │
+       ├─► [Tool Executes]
+       │
+       ├─► PostToolUse ─────► (format, lint, validate output)
+       │
+       ├─► Notification ────► (alert user when input needed)
+       │
+       └─► Stop ────────────► (cleanup, notifications on completion)
+```
+
+### Setup Script Platform Detection
+
+The `setup.sh` script detects OS for platform-specific behavior:
+- **macOS/Linux**: Uses shell installer for uv (`curl | sh`)
+- **Windows (MINGW/MSYS/Git Bash)**: Uses PowerShell installer for uv
+- Path conversion: `/d/path` → `D:/path` for Windows JSON configs

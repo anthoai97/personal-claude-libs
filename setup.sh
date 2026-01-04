@@ -10,13 +10,13 @@ set -euo pipefail
 # Script directory (where this script lives)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Colors for output (using $'...' ANSI-C quoting for proper escape handling)
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+BLUE=$'\033[0;34m'
+CYAN=$'\033[0;36m'
+NC=$'\033[0m' # No Color
 
 # Configuration variables
 TARGET_DIR=""
@@ -28,7 +28,7 @@ SKIP_ALL="n"
 print_color() {
     local color=$1
     shift
-    echo -e "${color}$@${NC}"
+    printf '%s%s%s\n' "$color" "$*" "$NC"
 }
 
 # Print header
@@ -109,7 +109,7 @@ safe_read_yn() {
                 printf -v "$var_name" '%s' "$sanitized_input"
                 ;;
             *)
-                printf "${YELLOW}Please enter 'y' for yes or 'n' for no.${NC} (y/n): "
+                printf '%s%s%s' "$YELLOW" "Please enter 'y' for yes or 'n' for no." "$NC (y/n): "
                 ;;
         esac
     done
@@ -153,7 +153,7 @@ safe_read_conflict() {
                 printf -v "$var_name" '%s' "$sanitized_input"
                 ;;
             *)
-                printf "${YELLOW}   Invalid choice. Please enter o, s, a, or n.${NC} Your choice: "
+                printf '%s%s%s' "$YELLOW" "   Invalid choice. Please enter o, s, a, or n." "$NC Your choice: "
                 ;;
         esac
     done

@@ -468,7 +468,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "$TARGET_DIR/.claude/hooks/notify.py input"
+            "command": "uv run $TARGET_DIR/.claude/hooks/notify.py input"
           }
         ]
       }
@@ -479,7 +479,7 @@ EOF
         "hooks": [
           {
             "type": "command",
-            "command": "$TARGET_DIR/.claude/hooks/notify.py complete"
+            "command": "uv run $TARGET_DIR/.claude/hooks/notify.py complete"
           }
         ]
       }
@@ -512,7 +512,7 @@ show_next_steps() {
 
     if [ "$INSTALL_NOTIFICATIONS" = "y" ]; then
         echo "${step_num}. Test notifications:"
-        echo "   - Run: $TARGET_DIR/.claude/hooks/notify.py input"
+        echo "   - Run: uv run $TARGET_DIR/.claude/hooks/notify.py input"
         echo
         ((step_num++))
     fi

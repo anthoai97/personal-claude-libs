@@ -92,7 +92,7 @@ The setup script will:
            "hooks": [
              {
                "type": "command",
-               "command": "/path/to/project/.claude/hooks/notify.py input"
+               "command": "uv run /path/to/project/.claude/hooks/notify.py input"
              }
            ]
          }
@@ -103,7 +103,7 @@ The setup script will:
            "hooks": [
              {
                "type": "command",
-               "command": "/path/to/project/.claude/hooks/notify.py complete"
+               "command": "uv run /path/to/project/.claude/hooks/notify.py complete"
              }
            ]
          }
@@ -114,8 +114,8 @@ The setup script will:
 
 4. **Test the hook**:
    ```bash
-   .claude/hooks/notify.py input
-   .claude/hooks/notify.py complete
+   uv run .claude/hooks/notify.py input
+   uv run .claude/hooks/notify.py complete
    ```
 
 ## Best Practices
@@ -139,7 +139,7 @@ The setup script will:
 
 ### No sound playing
 - Verify sound files exist in `sounds/` directory
-- Test directly: `.claude/hooks/notify.py complete`
+- Test directly: `uv run .claude/hooks/notify.py complete`
 - Check system audio settings and volume
 - Verify uv is installed: `uv --version`
 

@@ -66,10 +66,10 @@ After installation, test the notification sounds:
 
 ```bash
 # Test input notification
-/path/to/project/.claude/hooks/notify.py input
+uv run /path/to/project/.claude/hooks/notify.py input
 
 # Test completion notification
-/path/to/project/.claude/hooks/notify.py complete
+uv run /path/to/project/.claude/hooks/notify.py complete
 ```
 
 ## Manual Installation
@@ -94,7 +94,7 @@ If you prefer manual setup:
            "hooks": [
              {
                "type": "command",
-               "command": "/path/to/project/.claude/hooks/notify.py input"
+               "command": "uv run /path/to/project/.claude/hooks/notify.py input"
              }
            ]
          }
@@ -105,7 +105,7 @@ If you prefer manual setup:
            "hooks": [
              {
                "type": "command",
-               "command": "/path/to/project/.claude/hooks/notify.py complete"
+               "command": "uv run /path/to/project/.claude/hooks/notify.py complete"
              }
            ]
          }

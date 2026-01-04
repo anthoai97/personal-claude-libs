@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/d/Code/personal-claude-libs/.claude/.claude/hooks/notify.py complete"
+            "command": "uv run /d/Code/personal-claude-libs/.claude/.claude/hooks/notify.py complete"
           }
         ]
       }

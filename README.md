@@ -46,6 +46,7 @@ Audio notifications when Claude Code needs input or completes tasks.
 
 - **Input notification** - Plays when Claude needs your input
 - **Completion notification** - Plays when Claude finishes a task
+- **Telegram notifications (optional)** - Send completion alerts to Telegram
 
 The notification script uses [uv](https://docs.astral.sh/uv/) with inline script metadata (PEP 723) for automatic dependency management. No virtual environment setup required.
 
@@ -56,9 +57,23 @@ The notification script uses [uv](https://docs.astral.sh/uv/) with inline script
 # dependencies = [
 #   "sounddevice",
 #   "soundfile",
+#   "requests",
 # ]
 # ///
 ```
+
+#### Telegram Setup (Optional)
+
+To receive completion notifications via Telegram:
+
+1. Chat with [@BotFather](https://t.me/botfather) on Telegram to create a bot (takes ~2 minutes)
+2. Set environment variables:
+   ```bash
+   export TELEGRAM_BOT_TOKEN="your-bot-token"
+   export TELEGRAM_CHAT_ID="your-chat-id"
+   ```
+
+If not configured, only audio notifications play. See `hooks/Readme.md` for detailed setup instructions.
 
 ### Testing Notifications
 

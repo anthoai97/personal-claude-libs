@@ -66,6 +66,7 @@ Hooks use uv's single-file script format with inline metadata for automatic depe
 # dependencies = [
 #   "sounddevice",
 #   "soundfile",
+#   "requests",
 # ]
 # ///
 ```

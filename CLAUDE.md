@@ -13,7 +13,8 @@ This is the **Claude Code Development Kit** - a collection of utilities and hook
 │   ├── notify.py        # Main notification hook script
 │   ├── sounds/          # Audio files (.ogg format)
 │   └── Readme.md
-├── .claude/             # Local installation of hooks (for this repo)
+├── .claude/             # Claude Code configuration
+│   ├── commands/        # Custom slash commands
 │   └── hooks/           # Installed hooks and sounds
 ├── ai_docs/             # Reference documentation for AI assistants
 ├── test/                # Unit tests
@@ -41,6 +42,16 @@ uv run hooks/notify.py complete
 ```bash
 ./setup.sh
 ```
+
+## Slash Commands
+
+Custom Claude Code commands available in this repository:
+
+| Command | Description |
+|---------|-------------|
+| `/update-doc` | Scan codebase and update README.md and CLAUDE.md to reflect current state |
+
+Slash commands are defined in `.claude/commands/` as markdown files.
 
 ## Technical Details
 

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.sh input"
+            "command": "python3 /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.py input"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.sh complete"
+            "command": "python3 /Users/anquach/Code/personal-claude-libs/.claude/hooks/notify.py complete"
           }
         ]
       }

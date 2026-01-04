@@ -46,7 +46,7 @@ def main() -> int:
     sounds_dir = script_dir / "sounds"
 
     sound_files = {
-        "input": sounds_dir / "input-needed.wav",
+        "input": sounds_dir / "input-needed.ogg",
         "complete": sounds_dir / "complete.ogg",
     }
 

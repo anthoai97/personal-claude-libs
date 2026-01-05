@@ -13,13 +13,13 @@ A collection of utilities and hooks for enhancing Claude Code workflows.
 ### One-line Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/user/personal-claude-libs/master/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/anthoai97/personal-claude-libs/master/install.sh | bash
 ```
 
 Or clone and run locally:
 
 ```bash
-git clone https://github.com/user/personal-claude-libs.git
+git clone https://github.com/anthoai97/personal-claude-libs.git
 cd personal-claude-libs
 ./setup.sh
 ```
